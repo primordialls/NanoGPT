@@ -8,7 +8,7 @@ batch_size = 32
 block_size = 8
 max_iters = 3000
 eval_interval = 300
-learning_rate = 1e-2
+learning_rate = 1e-3
 device = "cuda" if torch.cuda.is_available() else "cpu"
 eval_iters = 200
 n_embd = 32
@@ -59,8 +59,32 @@ def estimate_loss():
     model.train()
     return out
 
+class Head(nn.Module):
+    """One head of self attention"""
+
+    def __init__(self,head_size):
+        super().__init__()
+        self.key = nn.Linear(n_embd,head_size,bias=False)
+        self.query = nn.Linear(n_embd,head_size,bias=False)
+        self.value = nn.Linear(n_embd,head_size,bias=False)
+        self.register_buffer('tril', torch.tril(torch.ones(block_size,block_size))) # buffer, not trained
+
+    def forward(self,x):
+        B,T,C = x.shape
+        k = self.key(x).view(B,T,C) #(B,T,C)
+        q = self.query(x).view(B,T,C) #(B,T,C)
+        #compute attention scores (affinities)
+        wei = q @ x.transpose(-2,-1) * C**-0.5 # (B,T,C)
+        wei = wei.masked_fill(self.tril[:T,:T]==0,float('-inf')) # (B,T,C)
+        wei = F.softmax(wei,dim = -1) # (B,T,C)
+        #perform weighted aggregation of the values
+        v = self.value(x)
+        out = wei @ v
+        return out
+    
 
 
+    
 class BigramLanguageModel(nn.Module):
     
     def __init__(self):
@@ -68,16 +92,15 @@ class BigramLanguageModel(nn.Module):
         self.token_embedding_table = nn.Embedding(vocab_size,n_embd)
         self.position_embedding_table = nn.Embedding(block_size,n_embd)
         self.lm_head = nn.Linear(n_embd,vocab_size)
-
+        self.sa_head = Head(n_embd)
     
     def forward(self, idx, targets=None):
         B,T = idx.shape
 
-
-
         tok_embd = self.token_embedding_table(idx) #(B,T,C)
         pos_embd = self.position_embedding_table(torch.arange(T,device=device)) # (T,C)
         x = tok_embd + pos_embd #(B,T,C)
+        x = self.sa_head(x) #(B,T,vocab_size)
         logits = self.lm_head(x) #(B,T,vocab_size)
 
         if targets == None:
@@ -93,8 +116,10 @@ class BigramLanguageModel(nn.Module):
     def generate(self,idx,max_new_tokens):
         #idx is (B,T) tensor of indices in current context
         for _ in range(max_new_tokens):
+            #crop idx to the last block_size tokens
+            idx_cond = idx[:,-block_size:]
             #get predictions:
-            logits,loss = self(idx)
+            logits,loss = self(idx_cond)
             #focus only on last time step:
             logits = logits[:,-1,:]
             #apply softmax to get probs
