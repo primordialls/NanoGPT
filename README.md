@@ -1,0 +1,2 @@
+# NanoGPT
+lol based
