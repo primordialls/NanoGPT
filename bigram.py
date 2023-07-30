@@ -19,22 +19,22 @@ dropout = 0.2
 #--------
 torch.manual_seed(1337)
 
-with open("input.txt","r",encoding="utf-8") as f:
-    text = f.read()
+# with open("input.txt","r",encoding="utf-8") as f:
+#     text = f.read()
 
-chars = sorted(set(list(text)))
-vocab_size = len(chars)
+# chars = sorted(set(list(text)))
+# vocab_size = len(chars)
 
-stoi = {s:i for i,s in enumerate(chars)}
-itos = {i:s for i,s in enumerate(chars)}
-encode = lambda x: [stoi[i] for i in x]
-decode = lambda y: ''.join(itos[i] for i in y)
+# stoi = {s:i for i,s in enumerate(chars)}
+# itos = {i:s for i,s in enumerate(chars)}
+# encode = lambda x: [stoi[i] for i in x]
+# decode = lambda y: ''.join(itos[i] for i in y)
 
-data = tt(encode(text),dtype = torch.long)
+# data = tt(encode(text),dtype = torch.long)
 
-n = int(0.9*len(data))
-train_data = data[:n]
-val_data = data[n:]
+# n = int(0.9*len(data))
+# train_data = data[:n]
+# val_data = data[n:]
 
 def get_batch(split):
     #generate a small batch of data of inputs x and targets y
@@ -184,28 +184,28 @@ class BigramLanguageModel(nn.Module):
         return idx
             
 
-model = BigramLanguageModel()
-m = model.to(device)
+# model = BigramLanguageModel()
+# m = model.to(device)
 
-optimizer = torch.optim.AdamW(model.parameters(),lr=learning_rate)
+# optimizer = torch.optim.AdamW(model.parameters(),lr=learning_rate)
 
-for iter in range(max_iters):
+# for iter in range(max_iters):
     
-    #every once in a while evaluate loss on train and val sets
-    if iter % eval_interval == 0:
-        losses = estimate_loss()
-        print (f"step {iter}: Train loss {losses['train']:.4f}, Val loss {losses['val']:.4f}")
+#     #every once in a while evaluate loss on train and val sets
+#     if iter % eval_interval == 0:
+#         losses = estimate_loss()
+#         print (f"step {iter}: Train loss {losses['train']:.4f}, Val loss {losses['val']:.4f}")
 
-    #sample batch of data
-    xb,yb = get_batch("train")
+#     #sample batch of data
+#     xb,yb = get_batch("train")
     
-    #evaluate loss
-    logits,loss = model(xb,yb)
-    optimizer.zero_grad(set_to_none=True)
-    loss.backward()
-    optimizer.step()
+#     #evaluate loss
+#     logits,loss = model(xb,yb)
+#     optimizer.zero_grad(set_to_none=True)
+#     loss.backward()
+#     optimizer.step()
     
-print(loss.item())
+# print(loss.item())
 
 context = torch.zeros((1,1),dtype=torch.long,device=device)
 
