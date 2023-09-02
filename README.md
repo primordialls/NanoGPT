@@ -1,2 +1,2 @@
 # NanoGPT
-lol based
+from @karpathy  
