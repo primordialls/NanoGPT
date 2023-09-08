@@ -1,2 +1,2 @@
 # NanoGPT
-from @karpathy  
+from @karpathy, generating Suits dialogue
