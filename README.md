@@ -1,5 +1,6 @@
 # NanoGPT
-from @karpathy, generating Suits dialogue
+from @karpathy, generating Suits dialogue.
+Decoder-Only Transformer
 
 ## Example
 suitsout.txt is an example of what the output looks like. It is essentially garbage but you can definitely pick out some suits-like trends
